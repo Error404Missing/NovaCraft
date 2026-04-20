@@ -1629,13 +1629,18 @@
                 <div class="casino-stats">
                     <div class="stat-box">
                         <span class="stat-label">თქვენი ბალანსი</span>
-                        <span class="stat-value" id="userBalanceHub">100,000,000 GEL</span>
+                        <div style="display: flex; align-items: center; gap: 10px; justify-content: center;">
+                            <span class="stat-value" id="userBalanceHub">0 GEL</span>
+                            <button onclick="fetchBalance()" style="background: none; border: none; color: #fbbf24; cursor: pointer; padding: 0; display: flex;">
+                                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="form-group" style="margin-top: 20px;">
-                    <label class="form-label">Minecraft Nickname</label>
-                    <input type="text" class="form-input" id="casinoMCName" placeholder="შეიყვანეთ თქვენი ნიკი" required style="border-color: #fbbf24;">
+                    <label class="form-label">Minecraft Nickname (ბალანსის სინქრონიზაციისთვის)</label>
+                    <input type="text" class="form-input" id="casinoMCName" placeholder="შეიყვანეთ თქვენი ნიკი" required style="border-color: #fbbf24;" onchange="fetchBalance()">
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
@@ -1732,7 +1737,30 @@
         function openStaffModal() { document.getElementById('staffModal').style.display = 'flex'; }
 
         // Casino Logic
-        let balance = 100000000, currentBet = 10000, activeGame = 'lobby', isSpinning = false, lastHLNum = 5, selectedHorse = null, pHand = [], dHand = [];
+        let balance = 0;
+        let currentBet = 10000;
+        let isSpinning = false;
+        let activeGame = null;
+        let selectedHorse = null;
+        let lastHLNum = 5;
+        let pHand=[], dHand=[];
+
+        async function fetchBalance() {
+            const mcName = document.getElementById('casinoMCName').value.trim();
+            if(!mcName) return;
+            try {
+                const res = await fetch(`https://casino-bridge.onrender.com/get-balance/${mcName}`);
+                const data = await res.json();
+                if(data.balance !== undefined) {
+                    balance = data.balance;
+                    updateBalance();
+                    showToast("ბალანსი განახლდა!");
+                }
+            } catch(e) {
+                console.error("ბალანსის წამოღება ვერ მოხერხდა");
+            }
+        }
+
         const SOUNDS = { spin: new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'), win: new Audio('https://assets.mixkit.co/active_storage/sfx/2017/2017-preview.mp3') };
         const MC_BASE_URL = 'https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/1.20.1/assets/minecraft/textures/';
         const SYMBOLS = [
